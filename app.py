@@ -11,7 +11,6 @@ Main pipeline of dealing with the whole process includes:
 '''
 
 import os
-import sys
 from typing import Union, List, Any, Tuple
 import numpy as np
 from itertools import groupby
@@ -26,16 +25,15 @@ from albumentations.pytorch import ToTensorV2
 import streamlit as st
 from annotated_text import annotated_text
 
-
-sys.path.append(r'.\resources')
-
-from c_Layout_Analisys.utils import (resize_aspect_ratio, Word, Line, sort_boxes,
-                                     sort_boxes_top2down_wrt_left2right_order, fit_bbox, Paragraph)
-from c_Layout_Analisys import paragraph_finder_model
-from a_Text_Detection.utils import Postprocessor, DrawMore
-from e_Service_Deployment.utils import prepare_crops, batchings, group_words_by_lines_or_lines_by_paragraphs
-from b_Optical_Character_Recognition.utils import resize_by_height
-from e_Service_Deployment.ner_model import inference_ner_model
+from resources.resize import resize_aspect_ratio
+from resources.dtos import Word, Line, Paragraph
+from resources.bboxes import sort_boxes, sort_boxes_top2down_wrt_left2right_order, fit_bbox
+from resources import paragraph_finder_model
+from resources.postprocessor import Postprocessor
+from resources.drawmore import DrawMore
+from resources.service_utils import prepare_crops, batchings, group_words_by_lines_or_lines_by_paragraphs
+from resources.resize_by_height import resize_by_height
+from resources.ner_model import inference_ner_model
 
 
 # Constants

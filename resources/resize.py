@@ -1,14 +1,7 @@
 from typing import Tuple
+
 import cv2
-
-from typing import Union, List
-
-from albumentations import BasicTransform, Compose, OneOf
 import numpy as np
-import torch.nn as nn
-import torch
-
-from resources.a_Text_Detection.utils import Postprocessor
 
 
 def resize_aspect_ratio(
@@ -38,21 +31,3 @@ def resize_aspect_ratio(
     size_heatmap = (int(target_w / 2), int(target_h / 2))
 
     return resized, ratio, size_heatmap
-
-
-def text_detection_inference(
-    model: nn.Module,
-    image: np.ndarray,
-    transform: Union[BasicTransform, Compose, OneOf],
-    postprocessor: Postprocessor,
-    device: str = 'cpu',
-) -> List[np.ndarray]:
-    # подготовка изображения (c помощью preprocessor=transform)
-    h, w, c = image.shape
-    image_changed = transform(image=image)['image'].unsqueeze(0).to(device)
-    # предсказание модели (с помощью model)
-    with torch.no_grad():
-        prediction = model(image_changed).to(device)
-    # постпроцессинг предсказаний (с помощью postprocessor)
-    pred_bin_maps = prediction[:, [2], :, :].cpu().detach().numpy()
-    return [np.array(x) for x in postprocessor(w, h, pred_bin_maps, return_polygon=False)[0]][0]

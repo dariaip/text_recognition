@@ -6,12 +6,12 @@ import numpy as np
 
 def get_rect(item: Union[np.ndarray, Any]) -> Any:
     """
-    Вспомогательная функция, вычисляюшая обрамляющий прямоугольник входного объекта.
+    Auxiliary function which calculates a bounding box for an incoming object.
     Args:
-        item: массив точек типа np.ndarray или объект, имеющий атрибут bbox
+        item: np.ndarray of points or an object that has "bbox" attribute
 
     Returns:
-        x, y, ширина, высота обрамляющего прямоугольника
+        (x, y, width, height) of the outcoming bounding box
     """
     if isinstance(item, np.ndarray):
         return cv2.boundingRect(item)
@@ -19,18 +19,18 @@ def get_rect(item: Union[np.ndarray, Any]) -> Any:
         if hasattr(item, "bbox"):
             return cv2.boundingRect(item.bbox.astype(np.float32))
         else:
-            raise NotImplementedError("Входной объект должен быть типа np.ndarray или иметь атрибут bbox.")
+            raise NotImplementedError("An incoming object should has either type np.ndarray, or an attribute 'bbox'.")
 
 
 def sort_boxes(items: List[Union[np.ndarray, Any]], sorting_type: str = 'top2down') -> List[Any]:
     """
-    Вспомогательная функция сортировки объектов сверху вниз или слева направо.
+    Auxiliary function for sorting objects in order from up to down and from left to right.
     Args:
-        items: объекты для сортировки
-        sorting_type: top2down - сверху вниз; left2right - слева направо
+        items: objects for sorting
+        sorting_type: top2down or left2right
 
     Returns:
-        отсортированные объекты
+        sorted objects
     """
     bboxes = [get_rect(item) for item in items]
 
@@ -40,23 +40,22 @@ def sort_boxes(items: List[Union[np.ndarray, Any]], sorting_type: str = 'top2dow
     elif sorting_type == 'left2right':
         sort_lambda = lambda pair: pair[0][0]
     else:
-        raise NotImplementedError(f'Метод сортировки "{sorting_type}" не поддерживается.')
+        raise NotImplementedError(f'Sorting method "{sorting_type}" is not supported.')
     items = [x for _, x in sorted(zip(bboxes, items), key=sort_lambda)]
     return items
 
 
 def sort_boxes_top2down_wrt_left2right_order(items: List[Union[np.ndarray, Any]]) -> List[Any]:
     """
-    Вспомогательная функция сортировки объектов с учетом порядка следования на странице. Алгоритм:
-    1. Сортируем все слова сверху вниз.
-    2. Выбираем самое верхнее слово, у которого слева нет другого слова, середина которого выше нижней границы
-    текущего слова.
-    3. Добавляем его в новый список.
+    Auxiliary function for sorting objects following their order on the page. Algorithm:
+    1. Sorting all words top-down.
+    2. Choose a word on the top that doesn't have another word, whose middle is upper than a lower edge of the initial word.
+    3. Add the word to a new list.
 
     Args:
-        items: список объектов для сортировки
+        items: objects for sorting
     Returns:
-        отсортированные с учетом порядка следования на странице объекты
+        sorted objects
     """
     if len(items) == 0:
         return []
@@ -66,27 +65,25 @@ def sort_boxes_top2down_wrt_left2right_order(items: List[Union[np.ndarray, Any]]
 
     def is_leftmost(item: Union[np.ndarray, Any], line_items: List[Union[np.ndarray, Any]]) -> bool:
         """
-        Вспомогательная функция, вычисляющая, является ли объект самым левым, не имеющим слева других объектов,
-        середина которых выше нижней границы данного.
+        Auxiliary function that calculates whether the object is the most left, and doesn't have other objects whose middle is upper than a lower edge of the object,
 
         Args:
-            item: объект для проверки
-            line_items: список объектов, соседних с данным
+            item: objects for checking
+            line_items: list of objects nearby
 
         Returns:
-            True, если объект является самым левым, не имеющим слева других объектов, середина которых выше нижней
-            границы данного; иначе False
+            True or False
         """
         item_rect = get_rect(item)
         baseline_y = item_rect[1] + item_rect[3]
 
         for line_item in line_items:
             line_item_rect = get_rect(line_item)
-            # Берем элементы левее текущего
+            # Take more left objects
             if line_item_rect[0] < item_rect[0]:
                 middle_point_y = line_item_rect[1] + line_item_rect[3] // 2
 
-                # Если средняя линия выше базовой линии то ищем другой элемент
+                # If the middle line is upper than the base line than looking for a next object
                 if middle_point_y < baseline_y:
                     return False
         return True

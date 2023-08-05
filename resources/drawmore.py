@@ -4,40 +4,35 @@ import cv2
 import numpy as np
 
 
-class DrawMore:
+def draw_contours(
+    image: np.ndarray,
+    polygons: List[np.ndarray],
+    color: Tuple[int, int, int] = (0, 255, 0),
+    thickness: int = 2,
+    fill: bool = False,
+    inplace: bool = False
+) -> np.ndarray:
     """
-    Вспомогательный класс с набором методов для конвертации и отрисовки.
+    Drawing a set of contours (polygons) on an image.
+
+    Args:
+        image: an image
+        polygons: list of polygons
+        color: color to use for the polygons' edges
+        thickness: thickness of line around a polygon
+        fill: whether to fill the area inside a polygon by the chosen color
+        inplace: whether to change the initial image
+
+    Returns:
+        the initial image (if inplace=True), a copy of the initial image with added polygons otherwise
     """
-    @staticmethod
-    def draw_contours(
-        image: np.ndarray,
-        polygons: List[np.ndarray],
-        color: Tuple[int, int, int] = (0, 255, 0),
-        thickness: int = 2,
-        fill: bool = False,
-        inplace: bool = False
-    ) -> np.ndarray:
-        """
-        Вспомогательный метод для отрисовки набора контуров (полигонов) на изображении.
+    if not inplace:
+        image = image.copy()
 
-        Args:
-            image: изображение
-            polygons: список полигонов
-            color: цвет отрисовки полигонов
-            thickness: толщина отрисовки полигонов
-            fill: заливать ли отрисованные полигоны цветом
-            inplace: изменять ли исходное изображение
-
-        Returns:
-            исходное изображение, если inplace=True, иначе копия исходного изображения с отрисованными полигонами
-        """
-        if not inplace:
-            image = image.copy()
-
-        for p in polygons:
-            p = np.array([p]).astype(np.int32)
-            if fill:
-                cv2.fillPoly(image, p, color)
-            else:
-                cv2.drawContours(image, p, -1, color, thickness=thickness)
-        return image
+    for p in polygons:
+        p = np.array([p]).astype(np.int32)
+        if fill:
+            cv2.fillPoly(image, p, color)
+        else:
+            cv2.drawContours(image, p, -1, color, thickness=thickness)
+    return image

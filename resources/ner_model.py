@@ -9,8 +9,8 @@ from torch import nn
 
 class CustomDataset(Dataset):
     """
-    Класс Dataset для подготовки данных и подачи модели BERT.
-    Словари для датасета RuRED.
+    Class Dataset for data preparation and putting it into BERT model.
+    Also include dictionaries of entity types for dataset RuRED.
     """
 
     def __init__(
@@ -163,12 +163,10 @@ index_to_label = {
 
 def transform_label_to_char_spans(dataset: CustomDataset, logits: np.array):
     """
-    Метод для преобразования потокенных лейблов в спановые сущности с
-    символьными координатами.
+    Method for transforming tokens' labels into spans and coordinates of symbols.
     """
     transformed_predictions = []
-    assert len(dataset.tokens_per_sample) == len(logits), \
-        "len(dataset.tokens_per_sample) != len(logits)"
+    assert len(dataset.tokens_per_sample) == len(logits), "len(dataset.tokens_per_sample) != len(logits)"
     for sample, markup in zip(dataset.tokens_per_sample, logits):
         sample_test = [" "] * sample[-1][1]
         char_coords = []
@@ -208,8 +206,7 @@ def cut_and_transform_predictions(
         predictions: np.array, tokens_mask: torch.tensor, index_to_label: dict
 ):
     """
-    Обрезает паддинги входных индексов лейблов и трасформирует индексы лейблов
-    в лейблы
+    Cut paddings of provided labels' indices as well as transform labels' indices into labels
     """
     batch_preds = []
     for pred, mask in zip(predictions, tokens_mask):
@@ -226,8 +223,8 @@ def predict(
         device: str, index_to_label: dict
 ):
     """
-    Выполняет предсказание с используя даталоадер и модель,
-    а также форматирует выход модели.
+    Make prediction using provided Dataloader and the model,
+    transform the model's output.
     """
     model.eval()
     preds = []

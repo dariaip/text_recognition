@@ -16,14 +16,14 @@ class Postprocessor:
         max_number: int = 1000
     ):
         """
-        Класс для постобработки полигонов.
+        Class for polygons' postprocessing.
 
         Args:
-            binarization_threshold: граница для бинаризации
-            confidence_threshold: граница по уверенности, ниже которой полигоны будут удаляться
-            unclip_ratio: значение для расширения полигонов
-            min_area: минимальная площадь, ниже которой полигоны будут удаляться
-            max_number: максимальное количество полигонов
+            binarization_threshold: threshold for binarization
+            confidence_threshold: threshold for confidence (a polygons with a lower confidence will be removed)
+            unclip_ratio: value for expanding polygons
+            min_area: minimal area (a polygons with a smaller will be removed)
+            max_number: maximal number of polygons
         """
         self.binarization_threshold = binarization_threshold
         self.confidence_threshold = confidence_threshold
@@ -39,17 +39,16 @@ class Postprocessor:
         return_polygon: bool = False
     ) -> Tuple[List[List[np.ndarray]], List[List[float]]]:
         """
-        Основной метод класса, принимающий на вход предсказания модели и возвращающий прямоугольники/полигоны
-        (в зависимости от значения параметра return_polygon).
+        The main method of the class
 
         Args:
-            width: ширина исходного изображения
-            height: высота исходного изображения
-            pred: предсказания модели
-            return_polygon: если True, то возвращаются полигоны, иначе возвращаются прямоугольники
+            width: width of the initial image
+            height: height of the initial image
+            pred: model's predictions
+            return_polygon: if True, than polygons will be returned, rectangles will be returned otherwise
 
         Returns:
-            прямоугольники/полигоны на основе предсказаний модели
+            rectangles/polygons based on the model's predictions
         """
         pred = pred[:, 0, :, :]
         segmentation = self.binarize(pred)
@@ -66,14 +65,13 @@ class Postprocessor:
 
     def binarize(self, pred: np.ndarray) -> np.ndarray:
         """
-        Вспомогательный метод для бинаризации (приведения тензора к значениям только 0 или 1) предсказаний по порогу
-        self.binarization_threshold.
+        Auxiliary method for predoctions' binarization (the tensor with predictions will includes 1 or 0 values) according to the self.binarization_threshold.
 
         Args:
-            pred: предсказания модели
+            pred: model's predictions
 
         Returns:
-            бинаризованные предсказания модели
+            binarized predictions
         """
         return pred > self.binarization_threshold
 
@@ -85,17 +83,17 @@ class Postprocessor:
         dest_height: int
     ) -> Tuple[List[np.ndarray], List[float]]:
         """
-        Вспомогательный метод для создания полигонов из бинаризованных предсказаний модели. Все предсказанные полигоны
-        приводятся к размеру исходного изображения (dest_width, dest_height).
+        Auxiliary method for polygons' creation from the provided binarized predictions.
+        All predictied polygons are scaled to the size of the initial image (dest_width, dest_height).
 
         Args:
-            pred: предсказания модели
-            _bitmap: бинаризованные предсказания модели
-            dest_width: ширина исходного изображения
-            dest_height: высота исходного изображения
+            pred: model's predictions
+            _bitmap: binarized predictions
+            dest_width: width of the initial image
+            dest_height: height of the initial image
 
         Returns:
-            полигоны на основе предсказаний модели
+            polygons
         """
         assert len(_bitmap.shape) == 2
         height, width = _bitmap.shape
@@ -143,17 +141,17 @@ class Postprocessor:
         dest_height: int
     ) -> Tuple[List[np.ndarray], List[float]]:
         """
-        Вспомогательный метод для создания прямоугольников (ббоксов) из бинаризованных предсказаний модели.
-        Все предсказанные прямоугольники приводятся к размеру исходного изображения (dest_width, dest_height).
+        Auxiliary method for creating bounding boxes (bboxes) from binarized model's predictions.
+        All predicted rectangles are scaled to a size of the initial image (dest_width, dest_height).
 
         Args:
-            pred: предсказания модели
-            _bitmap: бинаризованные предсказания модели
-            dest_width: ширина исходного изображения
-            dest_height: высота исходного изображения
+            pred: model's predictions
+            _bitmap: binarized model's predictions
+            dest_width: width of the initial image
+            dest_height: height of the initial image
 
         Returns:
-            прямоугольники на основе предсказаний модели
+            bboxes
         """
         assert len(_bitmap.shape) == 2
         height, width = _bitmap.shape
@@ -191,14 +189,13 @@ class Postprocessor:
 
     def _get_good_contours(self, _bitmap: np.ndarray) -> List[np.ndarray]:
         """
-        Вспомогательный метод для нахождения всех контуров на изображении, имеющих площадь больше self.min_area.
-        Возвращаются максимум self.max_number самых больших по площади контуров.
+        Auxiliary method for finding all contours on an image that has bigger area than self.min_area.
 
         Args:
-            _bitmap: бинаризованные предсказания модели
+            _bitmap: binarized model's predictions
 
         Returns:
-            self.max_number самых больших по площади контуров, имеющих площадь больше self.min_area
+            self.max_number of the biggest contours (according to their area) that has bigger area than self.min_area
         """
         contours, _ = cv2.findContours((_bitmap * 255).astype(np.uint8), cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
         contour_areas = [cv2.contourArea(c) for c in contours]
@@ -210,13 +207,13 @@ class Postprocessor:
     @staticmethod
     def get_mini_boxes(contour: np.ndarray) -> Tuple[List[List[int]], int]:
         """
-        Вспомогительный метод, приводящий заданный контур к списку из 4 точек с помощью метода cv2.minAreaRect.
+        Auxiliary method that transforms a contour to a list of 4 points with help of cv2.minAreaRect method.
 
         Args:
-            contour: контур
+            contour: contour
 
         Returns:
-            список из 4 точек, длина меньшей стороны результирующего прямоугольника
+            a list of 4 points and a length of the shortest side of the resulting rectangle
         """
         bounding_box = cv2.minAreaRect(contour)
         points = sorted(list(cv2.boxPoints(bounding_box)), key=lambda x: x[0])
@@ -240,15 +237,15 @@ class Postprocessor:
     @staticmethod
     def box_score_fast(bitmap: np.ndarray, _box: np.ndarray) -> float:
         """
-        Вспомогательный метод для оценки уверенности модели в заданном контуре. Уверенность вычисляется как процент
-        значений 1 в бинаризованном предсказании модели в пределах заданного контура.
+        Auxiliary method for estimation of model's confidence in the provided contour.
+        The confidence is equal to a percent of ones into the binarized predictions inside the provided contour.
 
         Args:
-            bitmap: бинаризованные предсказания модели
-            _box: контур
+            bitmap: the binarized predictions
+            _box: a contour
 
         Returns:
-            уверенность модели в заданном контуре
+            model's confidence inside the contour
         """
         h, w = bitmap.shape[:2]
         box = _box.copy()

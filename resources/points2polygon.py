@@ -4,16 +4,15 @@ import numpy as np
 from shapely.geometry import Polygon
 
 
-def points2polygon(points: Union[List, np.ndarray], idx: int) -> Polygon:
+def points2polygon(points: Union[List, np.ndarray]) -> Polygon:
     """
-    Вспомогательный метод, превращающий набор точек в полигон типа shapely.geometry.Polygon.
+    Auxiliary method that transforms a set of points into a polygon of type "shapely.geometry.Polygon".
 
     Args:
-        points: набор точек
-        idx: индекс, который присваивается полигону
+        points: a set of points
 
     Returns:
-        полигон типа shapely.geometry.Polygon
+        shapely.geometry.Polygon object
     """
     points = np.array(points).flatten()
 
@@ -24,6 +23,5 @@ def points2polygon(points: Union[List, np.ndarray], idx: int) -> Polygon:
         raise Exception('Implement approximation to 4 points as minimum')
 
     pol = Polygon(np.stack([point_x, point_y], axis=1)).buffer(0)
-    #pol.idx = idx
 
     return pol

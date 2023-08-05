@@ -6,13 +6,13 @@ from shapely.geometry import Polygon
 
 def unclip_polygon(polygon: np.ndarray, unclip_ratio: float) -> np.ndarray:
     """
-    Вспомогательная функция для расширения полигона в unclip_ratio раз.
+    Auxiliary function for expanding the provided polygon in unclip_ratio times.
 
     Args:
-        polygon: полигон
-        unclip_ratio: значение для расширения
+        polygon: a polygon
+        unclip_ratio: multiplicator for scaling
 
-    Returns: расширенный полигон
+    Returns: a scaled polygon
 
     """
     if cv2.contourArea(polygon) == 0:

@@ -6,17 +6,16 @@ import numpy as np
 
 def resize_by_height(image: np.ndarray, target_height: int, max_width: Optional[int] = None) -> np.ndarray:
     """
-    Вспомогательный метод для изменения размера изображения по высоте.
-    Итоговый размер определяется на основе высоты target_height, а ширина будет не более max_width,
-    если параметр max_width указан.
+    Auxiliary method for scaling an image's height
+    Final size of the image is defined based on target_height, whereas its width should be less (or equal) than max_width
 
     Args:
-        image: входное изображение
-        target_height: целевая высота, к которой приведется изображение
-        max_width: (опционально) максимальная возможная ширина преобразованного изображения
+        image: an image
+        target_height: height for scaling to
+        max_width: (optional) maximal possible width of the scaled image
 
     Returns:
-        преобразованное изображение
+        the scaled image
     """
     h, w, _ = image.shape
     interpolation = cv2.INTER_AREA if h > target_height else cv2.INTER_LINEAR

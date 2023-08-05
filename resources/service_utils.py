@@ -1,29 +1,26 @@
 import math
-from typing import Any, List, Union, Tuple, Optional
+from typing import Any, List, Union
 
 import cv2
 import numpy as np
-from PIL import Image, ImageDraw, ImageFont
 from shapely.geometry import Polygon
 from shapely.strtree import STRtree
 
-from resources.drawmore import DrawMore
 from resources.points2polygon import points2polygon
 from resources.dtos import Word, Line, Paragraph
 
 
 def four_point_transform(image: np.ndarray, box: np.ndarray) -> np.ndarray:
     """
-    Вспомогательная функция для вырезания кропа из исходного изображения по координатам 4 точек обрамляющего
-    прямоугольника.
-    Оригинал: https://pyimagesearch.com/2014/08/25/4-point-opencv-getperspective-transform-example/
+    Auxiliary function for cutting a crop from the provided image according to the provided coordinates of a bounding box.
+    Source: https://pyimagesearch.com/2014/08/25/4-point-opencv-getperspective-transform-example/
 
     Args:
-        image: исходное изображение
-        box: координаты обрамляющего прямоугольника в виде [[tl_x, tl_y], [tr_x, tr_y], [br_x, br_y], [bl_x, bl_y]]
+        image: an image
+        box: coordinates of a bounding box in format [[tl_x, tl_y], [tr_x, tr_y], [br_x, br_y], [bl_x, bl_y]]
 
     Returns:
-        кроп, вырезанный по координатам обрамляющего прямоугольника
+        the crop
     """
     (tl_x, tl_y), (tr_x, tr_y), (br_x, br_y), (bl_x, bl_y) = box.tolist()
     width_a = (tr_x - tl_x) ** 2 + (tr_y - tl_y) ** 2
@@ -53,14 +50,14 @@ def four_point_transform(image: np.ndarray, box: np.ndarray) -> np.ndarray:
 
 def prepare_crops(image: np.ndarray, bboxes: List[np.ndarray]) -> List[np.ndarray]:
     """
-    Вспомогательная функция, которая вырезает кропы из исходного изображения по всем обрамляющим прямоугольникам.
+    Auxiliary function that cuts crops from the provided image according to all provided bounding boxes.
 
     Args:
-        image: исходное изображение
-        bboxes: список из координат обрамляющих прямоугольников
+        image: an image
+        bboxes: list of coordinates of bounding boxes
 
     Returns:
-        кропы по всем обрамляющим прямоугольникам
+        the crops
     """
     crops = []
     for box in bboxes:
@@ -71,15 +68,15 @@ def prepare_crops(image: np.ndarray, bboxes: List[np.ndarray]) -> List[np.ndarra
 
 def batchings(objects: List[Any], batch_size: int) -> List[Any]:
     """
-    Вспомогательная функция-генератор, возвращающая последовательные подмножества входного списка размером batch_size.
-    Например, batchings(list(range(10), 4)) при приведении к списку вернет [[0, 1, 2, 3], [4, 5, 6, 7], [8, 9]].
+    Auxiliary function (generator) for getting consecutive sets of the provided objects where each set includes batch_size elements.
+    For instance, batchings(list(range(10), 4)) returns [[0, 1, 2, 3], [4, 5, 6, 7], [8, 9]].
 
     Args:
-        objects: список объектов
-        batch_size: размер целевых подмножеств
+        objects: a list of objects
+        batch_size: size of selected sets
 
     Returns:
-        так как данная функция - это генератор, то на каждой итерации она вернет очередное подмножество исходного списка
+        The function is a generator that's why each iteration leads to returning a following set
     """
     for i in range(0, len(objects), batch_size):
         yield objects[i: i + batch_size]
@@ -87,14 +84,14 @@ def batchings(objects: List[Any], batch_size: int) -> List[Any]:
 
 def get_iou(p1: Polygon, p2: Polygon) -> float:
     """
-    Вспомогательная функция, вычисляющая отношение площади пересечения двух полигонов к площади первого полигона.
+    Auxiliary function that calculates a customized Intersection over Union metrics for two provided polygons.
 
     Args:
-        p1: первый полигон
-        p2: второй полигон
+        p1: the 1st polygon
+        p2: the 2nd polygon
 
     Returns:
-        отношение площади пересечения двух полигонов к площади первого полигона
+        a ratio between an area of intersection of the provided polygons to area of the first polygon
     """
     intersection = p1.intersection(p2).area
     return intersection / p1.area
@@ -107,27 +104,26 @@ def group_words_by_lines_or_lines_by_paragraphs(
     h: int
 ) -> Union[List[Line], List[Paragraph]]:
     """
-    Вспомогательная функция, объединяющая список слов (Word) и список координат линий или
-    список линий (Line) и список координат групп.
+    Auxiliary function for joining a list of words (Word) and a list of lines' coordinates
+    or joining a list of lines (Line) and a list of groups' coordinates.
 
     Args:
-        inner_elements: список слов типа Word или линий типа Line
-        outer_element_bboxes: список координат линий или групп
+        inner_elements: list of words (each word of type "Word") list of lines (type "Line")
+        outer_element_bboxes: list of coordinates of lines or groups
 
     Returns:
-        список линий типа Line или групп типа Group
+        list of lines (type "Line") or list of groups (type "Group")
     """
     outer_element_type = Paragraph if isinstance(inner_elements[0], Line) else Line
 
-    inner_element_polygons = [points2polygon(el.bbox, idx) for idx, el in enumerate(inner_elements)]
-    outer_element_polygons = [points2polygon(el.bbox, idx) for idx, el in enumerate(outer_elements)]
+    inner_element_polygons = [points2polygon(el.bbox) for el in inner_elements]
+    outer_element_polygons = [points2polygon(el.bbox) for el in outer_elements]
     intersection_matrix = np.full((len(inner_elements), len(outer_elements)), fill_value=0, dtype=float)
     s = STRtree(inner_element_polygons)
     for pred_idx, pred_polygon in enumerate(outer_element_polygons):
         result = s.query(pred_polygon)
         if len(result) > 0:
             for gt_idx in result:
-                #gt_idx = gt_polygon.idx
                 gt_polygon = inner_element_polygons[gt_idx]
                 intersection_matrix[gt_idx, pred_idx] = get_iou(gt_polygon, pred_polygon)
     inner_with_no_outer = [idx for idx, max_iou in enumerate(np.max(intersection_matrix, axis=1))

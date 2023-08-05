@@ -8,6 +8,10 @@ The task can be referenced to **CV**, **NLP** fields as well as Multimodal appro
 The course also included dealing with such tools for **MLOPs** process as: **Docker**,
 **W&B**, frameworks **onnx** and **openvino**. The resulting product is an end-to-end service of image processing, that you can test.
 
+### Demo
+[![demo for a document1](./examples/demo_rus.mp4)]()
+
+
 ### How to run the service 
 python -m venv venv *(I use python 3.10)*
 
@@ -20,7 +24,3 @@ python -m pip install --upgrade setuptools
 python -m pip install -r requirements.txt
 
 streamlit run app.py
-
-
-# TODO:
-- check and update requirements.txt

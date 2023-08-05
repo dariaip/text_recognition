@@ -267,14 +267,15 @@ if __name__ == '__main__':
     uploaded_file = st.file_uploader("Upload your image here...")
     if uploaded_file:
         # upload an image
-        st.subheader(
-            "The initial image looks like this. If there is a text on it, the text should be recognized to the end of pipeline.")
+        st.subheader("Step 1 of 7")
+        st.write("The initial image looks like this. If there is text on the image, it should be recognized at the end of the pipeline.")
         expander = st.expander("Uploaded image", expanded=True)
         expander.image(uploaded_file)
 
         # text detection
         st.divider()
-        st.subheader("First of all, we need to detect areas on the image which include text.")
+        st.subheader("Step 2 of 7")
+        st.write("First of all, we need to detect areas on the image which include text.")
         countours_result, image_resized, pred_bboxes, image = detect_text(
             uploaded_file,
             max_image_size,
@@ -294,8 +295,8 @@ if __name__ == '__main__':
 
         # Joining words into lines and paragraphs
         st.divider()
-        st.subheader(
-            "The bounding boxes ahead include separate letters/symbols or words. But when we're dealing with documents (plenty of letters), we're interested in determining its structure, because it adds some meaning to the text. On this stage we determine a simple level of a text's structure - lines.")
+        st.subheader("Step 3 of 7")
+        st.write("The bounding boxes ahead include separate letters/symbols or words. But when we're dealing with documents (plenty of letters), we're interested in determining its structure because it adds some meaning to the text. At this stage, we determine a simple level of a text's structure - lines.")
         lines_result, line_labels, lines = get_lines(
             words,
             image,
@@ -312,13 +313,15 @@ if __name__ == '__main__':
         expander.image(lines_result.astype('int'))
 
         st.divider()
-        st.subheader("Let's look at the recognized text. Maybe your image is simple enough to stop here.")
+        st.subheader("Step 4 of 7")
+        st.write("Let's look at the recognized text. Maybe your image is simple enough to stop here.")
         expander = st.expander("Recognized text (line by line)")
         expander.text_area('Text', '\n'.join(line_labels), height=500)
 
         # join into paragraphs
         st.divider()
-        st.subheader("As you can see, understanding lines is not enough, because stopping on this step, we can find ourselves in a situation when order of words/lines can be wrong because of a more complex structure presented in the document's layout. That's why we need to recognize the layout (paragraphs / columns / etc.).")
+        st.subheader("Step 5 of 7")
+        st.write("As you can see, understanding lines are not enough because stopping at this step, we can find ourselves in a situation where the order of words/lines can be wrong because of a more complex structure presented in the document's layout. That's why we need to recognize the layout (paragraphs/columns/etc.).")
         expander = st.expander("Detected text grouped in paragraphs")
         overlapping_threshold = expander.slider('overlapping_threshold:', 0., 1., 0.5)
         cluster_eps = expander.slider('cluster_eps (hyperparameter of DBSCAN, power of 10):', -5, 5, -1)
@@ -328,7 +331,8 @@ if __name__ == '__main__':
 
             # text from paragraphs
             st.divider()
-            st.subheader("And finally we move to the characters' recognition and joining them into a text following the right order (according to the determined layout).")
+            st.subheader("Step 6 of 7")
+            st.write("And finally, we move to the characters' recognition and join them into a text following the correct order (according to the determined layout).")
             expander = st.expander("Recognized text (paragraph by paragraph, line by line)")
             rec_text = ''
             for i, para in enumerate(paragraphs):
@@ -343,7 +347,8 @@ if __name__ == '__main__':
 
             # NER
             st.divider()
-            st.subheader("When we have a text, we can use NLP techniques for its analisys. For example, let's extract such standard entities as *Person* or *Organization*")
+            st.subheader("Step 7 of 7")
+            st.write("When we have a text we can use NLP techniques for its analysis. For example, let's extract such standard entities as *Person* or *Organization*")
             model = torch.jit.load(os.path.join(MODEL_PATH, "ner_rured.jit"))
             model.eval()
             # Prepare examples for dataset in the same format that was used during the model's training

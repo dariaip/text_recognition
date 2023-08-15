@@ -8,8 +8,11 @@ The task can be referenced to **CV**, **NLP** fields as well as Multimodal appro
 The course also included dealing with such tools for **MLOPs** process as: **Docker**,
 **W&B**, frameworks **onnx** and **openvino**. The resulting product is an end-to-end service of image processing, that you can test.
 
-### Demo
-[![demo for a document1](./examples/demo_rus.mp4)]()
+### Demo (speeded-up artificially)
+
+https://github.com/dariaip/text_recognition/assets/41380940/76a9a054-d578-4613-8dff-180f2b0a5d7a
+
+
 
 
 ### How to run the service 
